@@ -1,0 +1,21 @@
+.col-md-4{}
+.classWithPad { margin:50px; 
+    padding:50px; 
+background-color: darkseagreen;
+height:20em;}
+.chatclassWithPad { margin:50px; 
+    padding:50px; 
+background-color: #bfd9bf;
+height:28em;}
+
+.chathistory { margin:50px; 
+    padding:50px; 
+background-color: white;
+height:17em;}
+.container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
