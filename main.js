@@ -9,13 +9,11 @@ var config = {  
 firebase.initializeApp(config);
 
 var dataRef = firebase.database();
- writeUserData('1', 'name1', '', '');
- writeUserData('2', 'name2', '', '');
- writeUserData('3', 'name3', '', '');
- writeUserData('4', 'name4', '', '');
+ var userId =0; 
 
 var maxusers = 10;
 var currentusers =[];
+var unpairedusers=[];
 updateCurrentUsers();
 function updateCurrentUsers()
 {
@@ -26,6 +24,7 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                  var childData = snapshot.val();
                                  console.log("snapshot is : " + snapshot.val());
                                  currentusers.push(childData.userid);
+                                 
                                  console.log("currentusers array in child added: " + currentusers);
                                                                    
                                                         });
@@ -36,21 +35,73 @@ dataRef.ref().child('users').on("child_removed", function(snapshot) {
                                  console.log("child_removed is : " + itemRemoved);
                                  console.log("currentusers array in child removed: " + currentusers);
                                  var index = currentusers.indexOf(itemRemoved);
-                                 array.splice(index, 1);
+                                 currentusers.splice(index, 1);
+                                 removeUnpairedrecord(itemRemoved);
                       });
 }
-
 function writeUserData(userId, name, wins, losses) {
+
     console.log("inside write function"); 
+
    dataRef.ref().child('users/'+ userId).set({  
+
             username: name,
+
             wins: wins,
+
             losses: losses,
+
             userid: userId 
+
+                                                    });
+
+                                                    }
+
+function removeUserData(userid){
+    
+    console.log("inside removeUserData"); 
+   dataRef.ref().child('users/'+ userid).remove() 
+   console.log("UserData removed");
+    
+                        }
+
+function writeUnpairedrecord(userId) {
+    console.log(" inside writeUnpairedrecord"); 
+   dataRef.ref().child('Unpairedrecord/'+userId).set({  
+       
+            username: userId,
+          
                                                     });
                                                     }
 
-
+function removeUnpairedrecord(userId) {
+    console.log("inside removeUnpairedrecord"); 
+   dataRef.ref().child('Unpairedrecord/'+userId).remove() 
+   console.log(" removed");
+    
+    
+   
+    
+  // var adaRef = firebase.database().ref('users/ada');
+//adaRef.remove()    
+          
+          
+                                                    
+                                                    }
+ function recordchatpairs(userid1,userid2) {
+    console.log("inside recordchatpairs"); 
+   dataRef.ref().child('chatpairs/'+userid1).set({  
+       
+            chatpair : userid2
+          
+                                                    });
+        
+        dataRef.ref().child('chatpairs/'+userid2).set({  
+       
+            chatpair : userid1
+          
+                                                    });
+                                                    }
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -73,7 +124,9 @@ function assignUniqueId(username) {
                                     console.log("currentusers.every(checkuserId) = " + result);
                                     if (result == true) {
                                                 console.log("new id is : " + Id);
+                                                userId=Id;
                                                 writeUserData (Id, username, '', '');
+                                                writeUnpairedrecord(Id);
                                                 IsValid = true;
                                                         }
                                     else {
@@ -89,20 +142,63 @@ function assignUniqueId(username) {
 
                         }
 //Assign New Id
-function getAndPushUniqueId(username) {
+/*function pair() {
+                while(unpairedusers.length>=2)
+                {
+                   var element1 = unpairedusers.pop();
+                   var element2=unpairedusers.pop();
+                   gameon(element1,element2);        
 
-                            var currentusers = getcurrentUsers();
+                }
+    
+function gameon(element1,element2){
+                    
+                  dataRef.ref().child('users/'+ element1).set({  
+                       opponent : element2;
+                       chathistory : '';
+                                          });
+                 dataRef.ref().child('users/'+ element2).set({  
+                       opponent : element1;
+                       chathistory : '';
+                                          });
+                
+                
+                
+                }*/
+    
+/*$("##send-button").on("click", function(event) {
 
-                                     }
+                           event.preventDefault();
+                           console.log($('#send-button').val());
+                           dataRef.ref().child('users/'+ myId).set({
+                           chathistory : 'whatever is captured'
+                                          });
+                                                    });*/
+
+      
+$(window).on('beforeunload', function ()
+    {   
+    
+        removeUserData(userId);
+       alert("hi");
+        return false;
+    });
 
 $("#submit-username").on("click", function(event) {
 
                             event.preventDefault();
+                           
                             console.log($('#userName').val());
-                            assignUniqueId($('#userName').val())
+                            assignUniqueId($('#userName').val())   ;
+                          
+
+
+                            recordchatpairs(1,2);
+                            recordchatpairs(3,4);
                                                     });
 
 
+                    
 
 // var somObj=snapshot.val();
 //  console.log("snapshot is : " + snapshot);
