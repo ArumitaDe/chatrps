@@ -19,6 +19,17 @@
                <center>Rock Paper Scissors </center>
             </h1>
          </div>
+           <form class="form-signin">
+         
+       
+        <label class="sr-only" >Input Username</label>
+        <input class="form-control" id="userName" autofocus="" required="" type="userName" placeholder="UserName">
+     
+       
+        <button class="btn btn-lg btn-primary btn-block" id="submit-username" type="submit">Sign in</button>
+            
+      </form>
+
          <div class="row-fluid">
             <div class="text-center col-md-4">
                <div class="classWithPad">
@@ -26,8 +37,9 @@
                </div>
             </div>
             <div class="text-center col-md-4">
-               <div class="classWithPad">
-                  <p>Player 2</p>
+               <div class="classWithPad" id="messagebox">
+                  
+                   <p><h2>Hello ! Waiting for a player</h2></p>
                </div>
             </div>
             <div class="text-center col-md-4 ">
@@ -42,13 +54,13 @@
    <div class=" col-md-8 col-md-offset-2 ">
       <div class="chatclassWithPad">
          <div class="input-group">
-            <input type="text" class="form-control">
+            <input type="text" class="form-control" id= "chat-text">
             <span class="input-group-btn">
             <button class="btn btn-default" type="button" id="send-button">Send</button>
             </span>
              </div>
           <div class="col-md-12  ">
-             <div class="chathistory">chat history</div>
+             <div class="chathistory" id="chat-history">chat history</div>
       </div>
          </div>
          

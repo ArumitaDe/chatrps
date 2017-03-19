@@ -38,7 +38,7 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                  chatpairs.push(childData.me);
                                  chatpairs.push(childData.chatpair);
                                  console.log("currentusers  chatpairs array in child added: 2 " +  chatpairs);
-                                                                   
+                                   startconversation(childData.me,childData.chatpair);                                 
                                                         });
     
     dataRef.ref().child('Unpairedrecord').on("child_added", function(snapshot) {
@@ -141,8 +141,27 @@ function removeUnpairedrecord(userId) {
             me:userid1,
             chatpair : userid2
           
-                                                    });}
-        
+                                             });
+ 
+       }
+
+
+
+       function startconversation(userid1,userid2){
+           if(userId==userid1)
+               $('#messagebox').html("You are now connected to " + userid2);
+            if(userId==userid2)
+               $('#messagebox').html("You are now connected to " +userid1);
+           
+           
+       //     dataRef.ref().child('chatpairs/'+userid1).set({  
+       
+     //  conversation:
+          
+         //                                    });
+           
+           
+       }
 
 
 function removechatpairs(itemRemoved){
@@ -285,6 +304,7 @@ $("#submit-username").on("click", function(event) {
                            
                             console.log($('#userName').val());
                             assignUniqueId($('#userName').val())   ;
+                            //window.location.href="index2.html";
                           
    });
 
