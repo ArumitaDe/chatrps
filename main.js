@@ -14,6 +14,7 @@ var dataRef = firebase.database();
 var maxusers = 10;
 var currentusers =[];
 var unpairedusers=[];
+var chatpairs=[];
 updateCurrentUsers();
 function updateCurrentUsers()
 {
@@ -28,6 +29,35 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                  console.log("currentusers array in child added: " + currentusers);
                                                                    
                                                         });
+    dataRef.ref().child('chatpairs').on("child_added", function(snapshot) {
+
+                                 
+                                 var childData = snapshot.val();
+          console.log("currentusers  chatpairs array in child added: 1 " +  chatpairs);
+                                 console.log("snapshot is : " + snapshot.val());
+                                 chatpairs.push(childData.me);
+                                 chatpairs.push(childData.chatpair);
+                                 console.log("currentusers  chatpairs array in child added: 2 " +  chatpairs);
+                                                                   
+                                                        });
+    
+    dataRef.ref().child('Unpairedrecord').on("child_added", function(snapshot) {
+                                var childData = snapshot.val();
+                              // if((childData.username>0)&&(childData.username<=maxusers))
+                                 unpairedusers.push(childData.username);
+                                console.log("Unpairedrecord array in child added: " + unpairedusers);
+         });
+        
+        dataRef.ref().child('Unpairedrecord').on("child_removed", function(snapshot) {
+                                var itemRemoved = snapshot.val().username;
+                              // if((childData.username>0)&&(childData.username<=maxusers))
+                                 var index = unpairedusers.indexOf(itemRemoved);
+                                 unpairedusers.splice(index, 1);
+                                 
+                                console.log("unpaireduser popped " + unpairedusers);
+                                 
+                                                                   
+                                                        });
                                 // Removes values from the currentusers array;
 dataRef.ref().child('users').on("child_removed", function(snapshot) {
 
@@ -36,9 +66,23 @@ dataRef.ref().child('users').on("child_removed", function(snapshot) {
                                  console.log("currentusers array in child removed: " + currentusers);
                                  var index = currentusers.indexOf(itemRemoved);
                                  currentusers.splice(index, 1);
-                                 removeUnpairedrecord(itemRemoved);
+                                  removechatpairs(itemRemoved);
+                                 if(unpairedusers.includes(itemRemoved))
+                                 {
+                                     removeUnpairedrecord(itemRemoved);
+                                    //var index = unpairedusers.indexOf(itemRemoved);
+                                    // unpairedusers.splice(index, 1);
+                                 }
+                                    
+                                    
                       });
 }
+ 
+    
+
+                   
+
+
 function writeUserData(userId, name, wins, losses) {
 
     console.log("inside write function"); 
@@ -90,18 +134,59 @@ function removeUnpairedrecord(userId) {
                                                     }
  function recordchatpairs(userid1,userid2) {
     console.log("inside recordchatpairs"); 
+     //chatpairs.push(userid1);
+     //chatpairs.push(userid1);
    dataRef.ref().child('chatpairs/'+userid1).set({  
        
+            me:userid1,
             chatpair : userid2
           
-                                                    });
+                                                    });}
         
-        dataRef.ref().child('chatpairs/'+userid2).set({  
+
+
+function removechatpairs(itemRemoved){
+    console.log("itemRemoved : " + itemRemoved);
+    var pair=0;
+    console.log("inside removechatpairs chatpairs is " +  chatpairs);
+    console.log("inside removechatpairs");
+    var index=chatpairs.indexOf(itemRemoved);
+     console.log("chatpairs.indexOf(itemRemoved)" + index);
+    if((index)%2==0)
+        {   pair=chatpairs[index+1];
+            chatpairs.splice(index, 2);
+        }
+        
+    else
+    {    pair=chatpairs[index-1];
+     
+        chatpairs.splice((index-1), 2);
+     }
+    
+     dataRef.ref().child('chatpairs/'+ itemRemoved).remove();
+     dataRef.ref().child('chatpairs/'+ pair).remove();
+    
+    console.log("inside removechatpairs .....chatpair removed   pair is " + pair );
+     if(unpairedusers.length>0)
+                                                 {var value=unpairedusers[(unpairedusers.length)-1];
+                                                  removeUnpairedrecord(value);
+                                                  recordchatpairs(pair,value);
+                                                 }
+                                                else
+                                                {writeUnpairedrecord(pair);}
+
+
+}
+
+  
+   
+   
+  
        
-            chatpair : userid1
-          
-                                                    });
-                                                    }
+    
+    
+    
+
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -126,11 +211,19 @@ function assignUniqueId(username) {
                                                 console.log("new id is : " + Id);
                                                 userId=Id;
                                                 writeUserData (Id, username, '', '');
-                                                writeUnpairedrecord(Id);
+                                                //get unpaired record, if atleast 1, pop and pair, else push yourself into the unpaired record.
+                                                if(unpairedusers.length>0)
+                                                 {var value=unpairedusers[(unpairedusers.length)-1];
+                                                  removeUnpairedrecord(value);
+                                                  recordchatpairs(userId,value)
+                                                 }
+                                                else
+                                                {writeUnpairedrecord(userId);
+                                                }
                                                 IsValid = true;
                                                         }
                                     else {
-                                                console.log("uh oh id is duplicated :" + Id);
+                                                console.log("uh oh id is duplicated :" + userId );
                                                 if (currentusers.length == maxusers) {
                                                             console.log("max no of users reached");
                                                             IsValid = true;
@@ -177,9 +270,11 @@ function gameon(element1,element2){
 
       
 $(window).on('beforeunload', function ()
-    {   
+    {    
     
         removeUserData(userId);
+        
+       
        alert("hi");
         return false;
     });
@@ -191,12 +286,7 @@ $("#submit-username").on("click", function(event) {
                             console.log($('#userName').val());
                             assignUniqueId($('#userName').val())   ;
                           
-
-
-                            recordchatpairs(1,2);
-                            recordchatpairs(3,4);
-                                                    });
-
+   });
 
                     
 
