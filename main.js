@@ -16,6 +16,8 @@ var currentusers =[];
 var unpairedusers=[];
 var chatpairs=[];
 updateCurrentUsers();
+var choice='';
+var playerchoice='';
 function updateCurrentUsers()
 {
                             // Adds values to the currentusers array;
@@ -41,11 +43,41 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                    startconversation(childData.me,childData.chatpair);                                 
                                                         });
     
+     dataRef.ref().child('chatpairs/user').on("child_added", function(snapshot) {
+                         
+                                 var childData = snapshot.val();
+          console.log("currentusers  chatpairs array in child added: 1 " +  chatpairs);
+                                 console.log("snapshot is : " + snapshot.val());
+                                 chatpairs.push(childData.me);
+                                 chatpairs.push(childData.chatpair);
+                                 console.log("currentusers  chatpairs array in child added: 2 " +  chatpairs);
+                                   startconversation(childData.me,childData.chatpair);    
+    
+                                                        });
+    
     dataRef.ref().child('Unpairedrecord').on("child_added", function(snapshot) {
                                 var childData = snapshot.val();
                               // if((childData.username>0)&&(childData.username<=maxusers))
                                  unpairedusers.push(childData.username);
                                 console.log("Unpairedrecord array in child added: " + unpairedusers);
+         });
+     dataRef.ref().child('rps').on("child_added", function(snapshot) {
+                                var childData = snapshot.val();
+                              // if((childData.username>0)&&(childData.username<=maxusers))
+                                if(choice=='')
+                                    $("#toprps").prepend("<b>Please select a button to play</b>");
+                                if(childData.pair==userId);
+                                playerchoice=childData.choice;
+         });
+    
+    dataRef.ref().child('chats').on("child_added", function(snapshot) {
+                                var childData = snapshot.val();
+                              // if((childData.username>0)&&(childData.username<=maxusers))
+        console.log("chats childData.conv " +  childData.conv + " childData.chatpair " + childData.chatpair);
+                                 if(userId==childData.chatpair)
+                               $('#chat-history').append("<br>" + childData.conv);
+         dataRef.ref().child('chats/'+childData.me).remove() ;
+        
          });
         
         dataRef.ref().child('Unpairedrecord').on("child_removed", function(snapshot) {
@@ -148,10 +180,13 @@ function removeUnpairedrecord(userId) {
 
 
        function startconversation(userid1,userid2){
+           
+           $('#messagebox').html("Your user id is : " + userId);
            if(userId==userid1)
-               $('#messagebox').html("You are now connected to " + userid2);
+           {$('#messagebox').append("<br>You are now connected to " + userid2);
+           }
             if(userId==userid2)
-               $('#messagebox').html("You are now connected to " +userid1);
+               $('#messagebox').append("<br>You are now connected to " +userid1);
            
            
        //     dataRef.ref().child('chatpairs/'+userid1).set({  
@@ -162,7 +197,6 @@ function removeUnpairedrecord(userId) {
            
            
        }
-
 
 function removechatpairs(itemRemoved){
     console.log("itemRemoved : " + itemRemoved);
@@ -298,16 +332,98 @@ $(window).on('beforeunload', function ()
         return false;
     });
 
+
+
+   
 $("#submit-username").on("click", function(event) {
 
                             event.preventDefault();
                            
                             console.log($('#userName').val());
                             assignUniqueId($('#userName').val())   ;
-                            //window.location.href="index2.html";
+                            $("#signin").hide();
+
                           
    });
+$("#send-button").on("click", function(event) {
 
+                  var index=chatpairs.indexOf(userId);
+    
+     $('#chat-history').append("<br>" + userId + " : " + $('#chat-text').val());
+    
+    if((index)%2==0)
+        {   pair=chatpairs[index+1];
+           
+        }
+        
+    else
+    {    pair=chatpairs[index-1];
+     
+     }         
+  
+   dataRef.ref().child('chats/'+userId).set({  
+       
+            me:userId,
+            chatpair : pair,
+            conv : userId + " : " + $('#chat-text').val()
+          
+                                             });
+ $('#chat-text').val('');
+      });
+          
+                          
+
+
+function rpsgame(choice)
+{
+    
+     var index=chatpairs.indexOf(userId);
+    
+    
+    if((index)%2==0)
+        {   pair=chatpairs[index+1];
+           
+        }
+        
+    else
+    {    pair=chatpairs[index-1];
+     
+     }         
+  
+   dataRef.ref().child('rps/'+userId).set({  
+       
+            me:userId,
+            choice:choice,
+            pair:pair
+            
+                                             });
+    
+    
+    
+    
+}
+
+$("#rock").on("click", function(event) {
+
+                           choice=rock;
+    rpsgame(choice);
+
+                          
+   });
+$("#paper").on("click", function(event) {
+
+                           choice=paper;
+    rpsgame(choice);
+
+                          
+   });
+$("#scissors").on("click", function(event) {
+
+                           choice=scissors;
+    rpsgame(choice);
+
+                          
+   });
                     
 
 // var somObj=snapshot.val();
