@@ -12,12 +12,18 @@ var dataRef = firebase.database();
  var userId =0; 
 
 var maxusers = 10;
+var wins=0;
+var losses=0;
+var ties=0;
 var currentusers =[];
 var unpairedusers=[];
 var chatpairs=[];
 updateCurrentUsers();
-var choice='';
-var playerchoice='';
+var choice='empty';
+ $("#rock").hide();
+    $("#paper").hide();
+    $("#scissors").hide();
+var playerchoice='empty';
 function updateCurrentUsers()
 {
                             // Adds values to the currentusers array;
@@ -27,10 +33,26 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                  var childData = snapshot.val();
                                  console.log("snapshot is : " + snapshot.val());
                                  currentusers.push(childData.userid);
-                                 
                                  console.log("currentusers array in child added: " + currentusers);
                                                                    
                                                         });
+    
+
+                            // Adds values to the currentusers array;
+dataRef.ref().child('users').on("value", function(snapshot) {
+
+                                  console.log("in update wins losses");
+                                 $('#wins').html("No of wins " + wins);
+                                 $('#losses').html("No of losses " +losses);
+                                 $('#ties').html("No of ties " +ties);
+                                                                   
+                                                        });
+    
+    
+    
+    
+    
+   
     dataRef.ref().child('chatpairs').on("child_added", function(snapshot) {
 
                                  
@@ -55,25 +77,77 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
     
                                                         });
     
+      dataRef.ref().child('rpsresult').on("child_added", function(snapshot) {
+                         
+                                 var childData = snapshot.val();
+                                         console.log(" dataRef.ref().child('rpsresult/'+userId).on(child_added, function(snapshot)"); 
+
+                                 if(childData.pair==userId)
+                                     
+                                    { $('#opponent').html("You chose : "  + childData.opponentschoice+" <br> Your opponent chose : " + childData.mychoice + "<br><b> You " + childData.result + "</b>");
+                                     
+                                         if(childData.result=='win')
+                                         wins++ ;
+                                        if(childData.result=='lose')
+                                        losses++;
+                                        if(childData.result=='tie')
+                                        ties++;
+                                     
+                                     
+                                     
+                                   //  var hopperRef = dataRef.child("users/" +userId);
+dataRef.ref().child("users/" +userId).update({
+  "wins": wins,
+     "losses": losses,
+     "ties": ties
+});
+                                     
+                                     $("#messagebox2").html("");
+                                  dataRef.ref().child('rpsresult/'+ childData.me).remove() ;
+                                   choice='empty';
+                                    playerchoice='empty';
+                                 $("#rock").show();
+                                 $("#paper").show();
+                                 $("#scissors").show();}
+                                 
+                                                        });
+    
+    
+    
+    
     dataRef.ref().child('Unpairedrecord').on("child_added", function(snapshot) {
                                 var childData = snapshot.val();
                               // if((childData.username>0)&&(childData.username<=maxusers))
                                  unpairedusers.push(childData.username);
-                                console.log("Unpairedrecord array in child added: " + unpairedusers);
+                                
          });
      dataRef.ref().child('rps').on("child_added", function(snapshot) {
                                 var childData = snapshot.val();
                               // if((childData.username>0)&&(childData.username<=maxusers))
-                                if(choice=='')
-                                    $("#toprps").prepend("<b>Please select a button to play</b>");
-                                if(childData.pair==userId);
-                                playerchoice=childData.choice;
+                               console.log("inside dataRef.ref().child('rps').on(child_added, function(snapshot)"); 
+         
+         console.log("childData.pair :"+childData.pair+"childData.choice: "+childData.choice,"userId is:"+userId);
+                                if((childData.pair)==userId)
+                               { 
+                                   
+                                   playerchoice=childData.choice;
+                                   dataRef.ref().child('rps/'+ childData.me).remove() ;
+                                   if(choice=='empty')
+                                      { console.log("inside the if");
+                                    $("#messagebox2").html("<b>Your opponent has played. Please select a choice button to play</b>");
+                                   }
+                                    else 
+                                    {
+                                        playrps(choice,playerchoice);
+                                    }
+                                        }
+         
          });
     
     dataRef.ref().child('chats').on("child_added", function(snapshot) {
                                 var childData = snapshot.val();
                               // if((childData.username>0)&&(childData.username<=maxusers))
-        console.log("chats childData.conv " +  childData.conv + " childData.chatpair " + childData.chatpair);
+        //console.log("chats childData.conv " +  childData.conv + " childData.chatpair " + childData.chatpair);
                                  if(userId==childData.chatpair)
                                $('#chat-history').append("<br>" + childData.conv);
          dataRef.ref().child('chats/'+childData.me).remove() ;
@@ -86,7 +160,7 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
                                  var index = unpairedusers.indexOf(itemRemoved);
                                  unpairedusers.splice(index, 1);
                                  
-                                console.log("unpaireduser popped " + unpairedusers);
+                                //console.log("unpaireduser popped " + unpairedusers);
                                  
                                                                    
                                                         });
@@ -94,8 +168,8 @@ dataRef.ref().child('users').on("child_added", function(snapshot) {
 dataRef.ref().child('users').on("child_removed", function(snapshot) {
 
                                  var itemRemoved = snapshot.val().userid;
-                                 console.log("child_removed is : " + itemRemoved);
-                                 console.log("currentusers array in child removed: " + currentusers);
+                                 //console.log("child_removed is : " + itemRemoved);
+                                 //console.log("currentusers array in child removed: " + currentusers);
                                  var index = currentusers.indexOf(itemRemoved);
                                  currentusers.splice(index, 1);
                                   removechatpairs(itemRemoved);
@@ -117,7 +191,7 @@ dataRef.ref().child('users').on("child_removed", function(snapshot) {
 
 function writeUserData(userId, name, wins, losses) {
 
-    console.log("inside write function"); 
+    //console.log("inside write function"); 
 
    dataRef.ref().child('users/'+ userId).set({  
 
@@ -126,6 +200,8 @@ function writeUserData(userId, name, wins, losses) {
             wins: wins,
 
             losses: losses,
+       
+            ties:ties,
 
             userid: userId 
 
@@ -135,14 +211,14 @@ function writeUserData(userId, name, wins, losses) {
 
 function removeUserData(userid){
     
-    console.log("inside removeUserData"); 
+    //console.log("inside removeUserData"); 
    dataRef.ref().child('users/'+ userid).remove() 
-   console.log("UserData removed");
+   //console.log("UserData removed");
     
                         }
 
 function writeUnpairedrecord(userId) {
-    console.log(" inside writeUnpairedrecord"); 
+    //console.log(" inside writeUnpairedrecord"); 
    dataRef.ref().child('Unpairedrecord/'+userId).set({  
        
             username: userId,
@@ -151,9 +227,9 @@ function writeUnpairedrecord(userId) {
                                                     }
 
 function removeUnpairedrecord(userId) {
-    console.log("inside removeUnpairedrecord"); 
+    //console.log("inside removeUnpairedrecord"); 
    dataRef.ref().child('Unpairedrecord/'+userId).remove() 
-   console.log(" removed");
+   //console.log(" removed");
     
     
    
@@ -165,7 +241,7 @@ function removeUnpairedrecord(userId) {
                                                     
                                                     }
  function recordchatpairs(userid1,userid2) {
-    console.log("inside recordchatpairs"); 
+    //console.log("inside recordchatpairs"); 
      //chatpairs.push(userid1);
      //chatpairs.push(userid1);
    dataRef.ref().child('chatpairs/'+userid1).set({  
@@ -181,12 +257,12 @@ function removeUnpairedrecord(userId) {
 
        function startconversation(userid1,userid2){
            
-           $('#messagebox').html("Your user id is : " + userId);
+           $('#messagebox1').html("Your user id is : " + userId);
            if(userId==userid1)
-           {$('#messagebox').append("<br>You are now connected to " + userid2);
+           {$('#messagebox1').append("<br>You are now connected to " + userid2);
            }
             if(userId==userid2)
-               $('#messagebox').append("<br>You are now connected to " +userid1);
+               $('#messagebox1').append("<br>You are now connected to " +userid1);
            
            
        //     dataRef.ref().child('chatpairs/'+userid1).set({  
@@ -199,12 +275,12 @@ function removeUnpairedrecord(userId) {
        }
 
 function removechatpairs(itemRemoved){
-    console.log("itemRemoved : " + itemRemoved);
+    //console.log("itemRemoved : " + itemRemoved);
     var pair=0;
-    console.log("inside removechatpairs chatpairs is " +  chatpairs);
-    console.log("inside removechatpairs");
+    //console.log("inside removechatpairs chatpairs is " +  chatpairs);
+    //console.log("inside removechatpairs");
     var index=chatpairs.indexOf(itemRemoved);
-     console.log("chatpairs.indexOf(itemRemoved)" + index);
+     //console.log("chatpairs.indexOf(itemRemoved)" + index);
     if((index)%2==0)
         {   pair=chatpairs[index+1];
             chatpairs.splice(index, 2);
@@ -219,7 +295,7 @@ function removechatpairs(itemRemoved){
      dataRef.ref().child('chatpairs/'+ itemRemoved).remove();
      dataRef.ref().child('chatpairs/'+ pair).remove();
     
-    console.log("inside removechatpairs .....chatpair removed   pair is " + pair );
+    //console.log("inside removechatpairs .....chatpair removed   pair is " + pair );
      if(unpairedusers.length>0)
                                                  {var value=unpairedusers[(unpairedusers.length)-1];
                                                   removeUnpairedrecord(value);
@@ -249,19 +325,19 @@ function assignUniqueId(username) {
                         var IsValid = false;
                         while (IsValid == false) {
                                     var Id = getRandomInt(1, maxusers);
-                                    console.log("id is:" + Id);
+                                    //console.log("id is:" + Id);
                                     function checkuserId(presentId) {
-                                                            console.log("id is:" + Id+" presentId is: "+presentId);
+                                                            //console.log("id is:" + Id+" presentId is: "+presentId);
                                                             //return Id != presentId;
                                                             if(Id==presentId)return false;
                                                             else return true;
                                                                     }
                                     
-                                    console.log("currentusers in assignunique id is : " + currentusers);
+                                    //console.log("currentusers in assignunique id is : " + currentusers);
                                     var result = currentusers.every(checkuserId);
-                                    console.log("currentusers.every(checkuserId) = " + result);
+                                    //console.log("currentusers.every(checkuserId) = " + result);
                                     if (result == true) {
-                                                console.log("new id is : " + Id);
+                                                //console.log("new id is : " + Id);
                                                 userId=Id;
                                                 writeUserData (Id, username, '', '');
                                                 //get unpaired record, if atleast 1, pop and pair, else push yourself into the unpaired record.
@@ -276,9 +352,9 @@ function assignUniqueId(username) {
                                                 IsValid = true;
                                                         }
                                     else {
-                                                console.log("uh oh id is duplicated :" + userId );
+                                                //console.log("uh oh id is duplicated :" + userId );
                                                 if (currentusers.length == maxusers) {
-                                                            console.log("max no of users reached");
+                                                            //console.log("max no of users reached");
                                                             IsValid = true;
                                                                                 }
                                          }
@@ -315,7 +391,7 @@ function gameon(element1,element2){
 /*$("##send-button").on("click", function(event) {
 
                            event.preventDefault();
-                           console.log($('#send-button').val());
+                           //console.log($('#send-button').val());
                            dataRef.ref().child('users/'+ myId).set({
                            chathistory : 'whatever is captured'
                                           });
@@ -339,9 +415,12 @@ $("#submit-username").on("click", function(event) {
 
                             event.preventDefault();
                            
-                            console.log($('#userName').val());
+                            //console.log($('#userName').val());
                             assignUniqueId($('#userName').val())   ;
                             $("#signin").hide();
+     $("#rock").show();
+                                 $("#paper").show();
+                                 $("#scissors").show();
 
                           
    });
@@ -372,13 +451,98 @@ $("#send-button").on("click", function(event) {
       });
           
                           
+function playrps(me,opponent)
 
+{    
+     console.log("inside function playrps(me,opponent)");
+    
+    var result='';
+    if((me=='rock')&&(opponent=='paper'))
+    result='lose';
+    if((me=='rock')&&(opponent=='scissors'))
+    result='win';
+    if((me=='rock')&&(opponent=='rock'))
+    result='tie';
+  if((me=='paper')&&(opponent=='paper'))
+    result='tie';
+    if((me=='paper')&&(opponent=='scissors'))
+    result='lose';
+    if((me=='paper')&&(opponent=='rock'))
+    result='win';
+  if((me=='scissors')&&(opponent=='paper'))
+    result='win';
+    if((me=='scissors')&&(opponent=='scissors'))
+    result='tie';
+    if((me=='scissors')&&(opponent=='rock'))
+    result='lose';
+ 
+ if(result=='win')
+     var opponentresult = 'lose';
+ if(result=='lose')
+     var opponentresult = 'win';
+ if(result=='tie')
+     var opponentresult = 'tie';
+    
+    
+    if(result=='win')
+      wins++ ;
+ if(result=='lose')
+     losses++;
+ if(result=='tie')
+     ties++;
+    
+    dataRef.ref().child("users/" +userId).update({
+  "wins": wins,
+     "losses": losses,
+     "ties": ties
+});
+                     
+ 
+  var index=chatpairs.indexOf(userId);
+
+    if((index)%2==0)
+        {   pair=chatpairs[index+1];
+           
+        }
+        
+    else
+    {    pair=chatpairs[index-1];
+     
+     }   
+    
+    $('#opponent').html("You chose : "  + me+" <br> Your opponent chose : " + opponent + "<br><b> You " + result + "</b>");
+    $("#messagebox2").html("");
+                                    choice='empty';
+                                    playerchoice='empty';
+                                 $("#rock").show();
+                                 $("#paper").show();
+                                 $("#scissors").show();
+    
+ 
+  dataRef.ref().child('rpsresult/'+userId).set({  
+       
+            me:userId,
+            mychoice : me,
+            opponentschoice:opponent,
+            pair:pair,
+            result : opponentresult
+            
+                                             });
+     
+  
+}
 
 function rpsgame(choice)
-{
-    
-     var index=chatpairs.indexOf(userId);
-    
+{    
+    console.log("inside function rpsgame(choice)");
+    var pair;
+    var index;
+    if((playerchoice)=='rock'|| (playerchoice)=='paper'||(playerchoice)=='scissors')
+        playrps(choice,playerchoice);
+        
+        else if (playerchoice=='empty')
+      {     
+      index=chatpairs.indexOf(userId);
     
     if((index)%2==0)
         {   pair=chatpairs[index+1];
@@ -399,27 +563,40 @@ function rpsgame(choice)
                                              });
     
     
-    
+      }
     
 }
 
 $("#rock").on("click", function(event) {
 
-                           choice=rock;
+                           choice='rock';
+    $("#rock").hide();
+    $("#paper").hide();
+    $("#scissors").hide();
+     $('#opponent').html("Waiting for your opponent");
     rpsgame(choice);
 
                           
    });
 $("#paper").on("click", function(event) {
 
-                           choice=paper;
+                           choice='paper';
+    $("#rock").hide();
+    $("#paper").hide();
+    $("#scissors").hide();
+    $('#opponent').html("Waiting for your opponent");
     rpsgame(choice);
 
                           
    });
 $("#scissors").on("click", function(event) {
 
-                           choice=scissors;
+                           choice='scissors';
+    $("#rock").hide();
+    $("#paper").hide();
+    $("#scissors").hide();
+    $('#opponent').html("Waiting for your opponent");
+    
     rpsgame(choice);
 
                           
@@ -466,7 +643,7 @@ var session=[];
          console.log(somObj);
    console.log(somObj.name);
       console.log(somObj.wins);
-      console.log(somObj.losses);
+      console.log(somObj.losees);
       
     }, function(errorObject) {
       console.losomObjg("Errors handled: " + errorObject.code);
